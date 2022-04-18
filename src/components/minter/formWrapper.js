@@ -153,7 +153,7 @@ const Form = () => {
         color="black"
         maxW="lg"
         borderRadius="2xl"
-        p={4}
+        p={8}
         mb={-4}
       >
         <Collapse in={minterState < 1}>

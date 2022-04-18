@@ -1,22 +1,5 @@
 import React from "react";
-import {
-  Box,
-  Button,
-  Circle,
-  Flex,
-  HStack,
-  Image,
-  Input,
-  Menu,
-  MenuButton,
-  MenuItem,
-  MenuList,
-  Spacer,
-  Stack,
-  Text,
-  Textarea,
-} from "@chakra-ui/react";
-import { ChevronDownIcon } from "@chakra-ui/icons";
+import { Input, Text, Textarea } from "@chakra-ui/react";
 
 const TextInputs = (props) => {
   return (
@@ -40,65 +23,6 @@ const TextInputs = (props) => {
         unless you have necessary permission or are otherwise legally entitled
         to post the material.
       </Text>
-      <Flex>
-        <Spacer />
-        <HStack>
-          <Box
-            cursor="pointer"
-            borderWidth="1px"
-            borderRadius="md"
-            boxShadow="md"
-            _checked={{
-              bg: "teal.600",
-              color: "white",
-              borderColor: "teal.600",
-            }}
-            _focus={{
-              boxShadow: "outline",
-            }}
-            px={5}
-            py={3}
-          >
-            jkhnuio
-          </Box>
-          <Box
-            cursor="pointer"
-            borderWidth="1px"
-            borderRadius="md"
-            boxShadow="md"
-            _checked={{
-              bg: "teal.600",
-              color: "white",
-              borderColor: "teal.600",
-            }}
-            _focus={{
-              boxShadow: "outline",
-            }}
-            px={5}
-            py={3}
-          >
-            jkhnuio
-          </Box>
-          <Box
-            cursor="pointer"
-            borderWidth="1px"
-            borderRadius="md"
-            boxShadow="md"
-            _checked={{
-              bg: "teal.600",
-              color: "white",
-              borderColor: "teal.600",
-            }}
-            _focus={{
-              boxShadow: "outline",
-            }}
-            px={5}
-            py={3}
-          >
-            jkhnuio
-          </Box>
-        </HStack>
-      </Flex>
     </>
   );
 };
