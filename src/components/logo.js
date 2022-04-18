@@ -1,6 +1,6 @@
 import { Box, Heading } from "@chakra-ui/react";
 
-const Logo = (props) => {
+const Logo = () => {
   return (
     <>
       <Box>
