@@ -1,22 +1,24 @@
-import React, { useRef } from "react";
-import { Box, Button, Center, Image, Spacer, Stack } from "@chakra-ui/react";
+import React, { memo, useRef } from "react";
+import { Box, Center, Flex, Image, Spacer, Stack } from "@chakra-ui/react";
 import { bytesToSize } from "../../helpers/helper";
 
-const ImgPreview = (props) => {
+const ImgPreview = ({ file }) => {
+  const imageSRC = URL.createObjectURL(file);
+
   return (
     <>
       <Box borderRadius="lg" overflow="hidden" bg="#fff">
         <Center>
-          <Box borderRadius="lg" overflow="hidden" m={2}>
-            <Image src={URL.createObjectURL(props.file)} />
-          </Box>
+          <Flex borderRadius="lg" overflow="hidden" m={2}>
+            <Image src={imageSRC} />
+          </Flex>
         </Center>
 
         <Box bg="#fff" p={2} pt={0}>
           <Stack direction="ros">
-            <Box>{props.file.name}</Box>
+            <Box>{file.name}</Box>
             <Spacer />
-            <Box>{bytesToSize(props.file.size)}</Box>
+            <Box>{bytesToSize(file.size)}</Box>
           </Stack>
         </Box>
       </Box>

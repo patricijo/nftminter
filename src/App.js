@@ -1,9 +1,19 @@
-import "./App.css";
-import { Container, Stack, Center, Box } from "@chakra-ui/react";
+import {
+  Container,
+  Stack,
+  Center,
+  Box,
+  Collapse,
+  Flex,
+} from "@chakra-ui/react";
 import Form from "./components/form/form";
 import Logo from "./components/logo";
+import useStore from "./store";
+import Minter from "./components/minter/minter";
 
 function App() {
+  const NFTData = useStore((state) => state.NFTData);
+  console.log("run app.js");
   return (
     <>
       <Center minH={"100vh"}>
@@ -20,7 +30,12 @@ function App() {
               borderRadius="2xl"
               p={8}
             >
-              <Form />
+              <Collapse in={!NFTData}>
+                <Form />
+              </Collapse>
+              <Collapse in={NFTData}>
+                {NFTData ? <Minter NFTData={NFTData} /> : null}
+              </Collapse>
             </Box>
           </Stack>
         </Container>

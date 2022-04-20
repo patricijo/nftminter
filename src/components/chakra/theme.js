@@ -25,7 +25,7 @@ export const theme = extendTheme({
     global: () => ({
       body: {
         bgGradient: "linear(346deg, rgba(80,25,108,1), rgba(21,14,42,1) )",
-        h: "calc(100vh)",
+        minH: "calc(100vh)",
       },
     }),
   },
