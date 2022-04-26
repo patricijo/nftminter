@@ -1,45 +1,65 @@
-import React, { memo, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { ethers } from "ethers";
 import { Web3Storage } from "web3.storage";
 
 import NFTMINTER from "../../artifacts/contracts/NFT_Minter.sol/NFTMINTER.json";
-import Error from "./errors";
-import Status from "./status";
-import { Stack } from "@chakra-ui/react";
-import { zeroPad } from "ethers/lib/utils";
+
+import MinterDisplay from "./minterDisplay";
+import { Collapse, Stack } from "@chakra-ui/react";
+import { useMinterStore } from "./minterStore";
+import { useStore } from "../../store";
+
+import MintedDisplay from "./mintedDisplay";
 
 const Minter = ({ NFTData }) => {
-  console.log("run minter.js");
-  const [error, setError] = useState();
-  const [status, setStatus, getStatus] = useState({});
-  const [uploadedFile, setUploadedFile] = useState(null);
+  const [ready, setReady] = useState(false);
+
+  const { chains } = useStore();
+
+  const {
+    setNFTData,
+    addMinterState,
+    changeMinterStateStatus,
+    changeLastMinterStateStatus,
+    resetMinterState,
+  } = useMinterStore();
+
+  // const minterState = useMinterStore((state) => state.minterStates);
+  //const addMinterState = useMinterStore((state) => state.addMinterState);
+  //const removeMinterState = useMinterStore((state) => state.removeMinterState);
 
   /// Storage
   ////////////////////////////////////////////
   const web3storage_token = process.env.REACT_APP_WEB3_STORAGE_TOKEN;
   const client = new Web3Storage({ token: web3storage_token });
 
-  //  Contract & Ethers
-  ////////////////////////////////////////////
-  const contractAddress = "0xB4d5536C716E5Ca077bA415563170c92c0B63eE3";
-
   //  Ethers Functions
   ////////////////////////////////////////////
-  const selectNetwork = async () => {
+  const selectNetwork = async (currentChain) => {
+    if (chains[currentChain].method !== "wallet_switchEthereumChain") {
+      return await window.ethereum.request({
+        method: chains[currentChain].method,
+        params: [
+          {
+            chainId: chains[currentChain].chainIdHex,
+            rpcUrls: [chains[currentChain].rpcUrls],
+            chainName: chains[currentChain].chainName,
+            nativeCurrency: {
+              name: chains[currentChain].name,
+              symbol: currentChain,
+              decimals: 18,
+            },
+            blockExplorerUrls: [chains[currentChain].blockExplorerUrls],
+          },
+        ],
+      });
+    }
     return await window.ethereum.request({
-      method: "wallet_addEthereumChain",
+      method: chains[currentChain].method,
       params: [
         {
-          chainId: "0x13881",
-          rpcUrls: ["https://rpc-mainnet.matic.network/"],
-          chainName: "Matic Mumbai",
-          nativeCurrency: {
-            name: "POLYGON Mumbai",
-            symbol: "MATIC",
-            decimals: 18,
-          },
-          blockExplorerUrls: ["https://explorer-mumbai.maticvigil.com/"],
+          chainId: chains[currentChain].chainIdHex,
         },
       ],
     });
@@ -52,68 +72,82 @@ const Minter = ({ NFTData }) => {
     return account;
   };
 
-  const handleAddStatus = async (s) => {
-    const newStatus = status;
-    newStatus[s.id] = s;
-    setStatus(newStatus);
-
-    setStatus((state) => {
-      console.log(state); // "React is awesome!"
-
-      return state;
-    });
+  const cancelMint = () => {
+    setReady(false);
+    resetMinterState();
+    setNFTData(null);
   };
-  const handleChangeStatus = (s) => {
-    const newStatus = status;
-    newStatus[s.id].state = s.state;
-    setStatus(newStatus);
+  const resetMint = () => {
+    resetMinterState();
+    startMint();
   };
-
-  const handleRemoveStatus = (s) => {
-    const newStatus = { ...status };
-    delete newStatus[s.id];
-    setStatus(newStatus);
-  };
-
   ////////////////////////////////////////////////
   /////////////// MINTER
   ////////////////////////////////////////////////
   const startMint = async () => {
     try {
-      setStatus({});
-
-      await handleAddStatus({
+      addMinterState({
         id: "cyw",
-        text: "Connecting Your Wallet...",
+        text: "Connecting your Wallet...",
         state: "loading",
       });
-      await requestAccount();
 
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const network = await provider.getNetwork();
+      const acc = await requestAccount();
+      let provider = new ethers.providers.Web3Provider(window.ethereum);
+      let network = await provider.getNetwork();
 
-      if (network.chainId !== 80001) {
-        await selectNetwork();
+      if (network.chainId !== chains[NFTData.chain].chainId) {
+        addMinterState({
+          id: "psyn",
+          text: `Please select the ${chains[NFTData.chain].name} Network...`,
+          state: "loading",
+        });
+        await selectNetwork(NFTData.chain);
+        provider = new ethers.providers.Web3Provider(window.ethereum);
+        network = await provider.getNetwork();
       }
+      if (network.chainId !== chains[NFTData.chain].chainId) {
+        changeLastMinterStateStatus("err");
+        throw new Error("We could not connect to the Network.");
+      }
+      changeLastMinterStateStatus("checked");
+      /*      if (network.chainId !== 80001) {
+        
+        if (network.chainId !== 80001) {
+        }
+      } */
+      changeMinterStateStatus("cyw", "checked");
 
-      await handleAddStatus({
+      addMinterState({
         id: "uyi",
         text: "Uploading your Image...",
         state: "loading",
       });
 
-      if (!uploadedFile) {
-        const img_ipfs_address = await client.put([NFTData.file], {});
+      let img_ipfs_address = await client.put([NFTData.file], {});
+      /* 
+      setUploadedFile({
+        ipfs: img_ipfs_address,
+        filename: encodeURI(NFTData.file.name),
+      }); */
+      const newNFTData = NFTData;
+      newNFTData.ipfs = img_ipfs_address;
+      newNFTData.filename = encodeURI(NFTData.file.name);
+      setNFTData(newNFTData);
 
-        setUploadedFile(img_ipfs_address);
-      }
+      img_ipfs_address = img_ipfs_address + "/" + encodeURI(NFTData.file.name);
+      changeMinterStateStatus("uyi", "checked");
 
-      await handleChangeStatus({ id: "uyi", state: "checked" });
+      addMinterState({
+        id: "pstt",
+        text: "Please sign the transaction...",
+        state: "loading",
+      });
 
       const signer = provider.getSigner();
 
       const contract = new ethers.Contract(
-        contractAddress,
+        chains[NFTData.chain].contract,
         NFTMINTER.abi,
         signer
       );
@@ -121,26 +155,62 @@ const Minter = ({ NFTData }) => {
       const transaction = await contract.mint(
         NFTData.title,
         NFTData.description,
-        "ipfs://" + uploadedFile + "/" + NFTData.file.name
+        img_ipfs_address
       );
+      contract.on("Minted", (from, tokenId) => {
+        const newNFTData = NFTData;
+        newNFTData.tokenId = tokenId.toNumber();
 
+        setNFTData(newNFTData);
+        if (from.toLowerCase() === acc[0]) {
+          console.log(
+            `Token minted from ${from.toLowerCase()} as ${tokenId.toNumber()}`
+          );
+        }
+      });
+      changeMinterStateStatus("pstt", "checked");
+
+      addMinterState({
+        id: "myn",
+        text: "Minting your NFT...",
+        state: "loading",
+      });
       await transaction.wait();
 
-      return;
+      changeMinterStateStatus("myn", "checked");
+
+      setReady(true);
     } catch (error) {
       console.log(error);
+      changeLastMinterStateStatus("err");
+
+      addMinterState({
+        id: error.code,
+        text: error.message,
+        state: "error",
+      });
     }
   };
 
   useEffect(() => {
-    startMint();
-  }, []);
+    if (NFTData) {
+      startMint();
+    }
+  }, [NFTData]);
+
   return (
     <>
-      <Stack>
-        <Status status={status} />
-
-        <Error error={error} />
+      <Stack spacing={2}>
+        <Collapse in={ready === false}>
+          <MinterDisplay cancelMint={cancelMint} resetMint={resetMint} />
+        </Collapse>
+        <Collapse in={ready === true}>
+          <MintedDisplay
+            NFTData={NFTData}
+            chains={chains}
+            cancelMint={cancelMint}
+          />
+        </Collapse>
       </Stack>
     </>
   );

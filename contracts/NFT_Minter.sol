@@ -21,12 +21,14 @@ contract NFTMINTER is ERC721Enumerable, Ownable {
 
     constructor() ERC721("NFT MINTER", "NFTMNT") {}
 
+    event Minted(address indexed _from, uint256 _value);
+
     // public
     function mint(
         string memory _title,
         string memory _description,
         string memory _img
-    ) public payable returns (uint256) {
+    ) public payable {
         uint256 supply = totalSupply();
         require(supply + 1 <= 1000);
 
@@ -39,7 +41,7 @@ contract NFTMINTER is ERC721Enumerable, Ownable {
         nfts[supply + 1] = newNFT;
         _safeMint(msg.sender, supply + 1);
 
-        return uint256(supply + 1);
+        emit Minted(msg.sender, supply + 1);
     }
 
     function buildMetadata(uint256 _tokenId)
@@ -59,7 +61,7 @@ contract NFTMINTER is ERC721Enumerable, Ownable {
                                 currentNFT.title,
                                 '", "description":"',
                                 currentNFT.description,
-                                '", "image": ipfs://"',
+                                '", "image":"ipfs://"',
                                 currentNFT.img,
                                 '"}'
                             )

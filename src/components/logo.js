@@ -12,7 +12,7 @@ const Logo = () => {
         </Heading>
         <Heading as="h1" size="3xl" color="#fff">
           NFT
-        </Heading>
+        </Heading>{" "}
       </Box>
     </>
   );
