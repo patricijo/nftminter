@@ -17,7 +17,7 @@ import { useEffect } from "react";
 
 import { useStore } from "../../store";
 
-const SelectChain = ({ setChain, chain, openModal }) => {
+const SelectChain = ({ setFormValues, chain, openModal }) => {
   const { chains } = useStore();
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -34,11 +34,14 @@ const SelectChain = ({ setChain, chain, openModal }) => {
           <Box
             minH="48px"
             onClick={() => {
-              setChain(key);
+              setFormValues((prev) => ({
+                ...prev,
+                chain: key,
+              }));
               onClose();
             }}
             _hover={{
-              bg: "secondary",
+              bg: "transparentcolor",
             }}
             p={4}
             cursor="pointer"
@@ -66,7 +69,7 @@ const SelectChain = ({ setChain, chain, openModal }) => {
       <Button onClick={onOpen} w="100%" justifyContent="flex-start">
         {chain ? (
           <>
-            <Stack direction={"row"}>
+            <Stack direction={"row"} alignItems="center">
               <Icon as={chains[chain].icon} w={6} h={6} />{" "}
               <Text>{chains[chain].name}</Text>
             </Stack>
@@ -78,7 +81,12 @@ const SelectChain = ({ setChain, chain, openModal }) => {
 
       <Modal isOpen={isOpen} onClose={onClose}>
         <ModalOverlay backdropFilter="blur(10px)" />
-        <ModalContent bg="primary.800" borderRadius={"lg"} overflow={"hidden"}>
+        <ModalContent
+          bg="primary.200"
+          borderRadius={"lg"}
+          overflow={"hidden"}
+          color="#fff"
+        >
           <ModalHeader>Choose a Chain.</ModalHeader>
           <ModalCloseButton />
 

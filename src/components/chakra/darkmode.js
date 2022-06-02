@@ -2,7 +2,7 @@ import { extendTheme } from "@chakra-ui/react";
 
 // 2. Add your color mode config
 const config = {
-  initialColorMode: "dark",
+  initialColorMode: "light",
   useSystemColorMode: false,
 };
 
@@ -55,15 +55,11 @@ const components = {
       variant: "base",
     },
   },
-  Alert: {
-    defaultProps: {
-      // Then here we set the base variant as the default
-      variant: "base",
-    },
-  },
+  Alert: { variant: "base" },
 };
+const fonts = {};
 
 // 3. extend the theme
-const theme = extendTheme({ config, colors, styles, components });
+const theme = extendTheme({ config, colors, styles, components, fonts });
 
 export default theme;

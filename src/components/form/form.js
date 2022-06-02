@@ -3,6 +3,8 @@ import {
   Box,
   Button,
   Collapse,
+  Divider,
+  Flex,
   Heading,
   Input,
   NumberDecrementStepper,
@@ -23,109 +25,141 @@ import { useMinterStore } from "../minter/minterStore";
 import { useStore } from "../../store";
 
 const Form = () => {
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [file, setFile] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [chain, setChain] = useState();
+  const initialState = {
+    title: "",
+    description: "",
+    file: null,
+    quantity: 1,
+    chain: null,
+  };
+  const [formValues, setFormValues] = useState(initialState);
+
   const [openModal, setOpenModal] = useState(false);
 
   const [collapseHandler, setCollapseHandler] = useState(false);
+
   const setNFTData = useMinterStore((state) => state.setNFTData);
-  const { chains } = useStore();
+
+  const { chains, clear, toggleClear, toggleMint } = useStore();
 
   const onClickMint = () => {
-    if (chain) {
+    if (formValues.chain) {
       setNFTData({
-        title: title,
-        description: description,
-        file: file,
-        quantity: quantity,
-        chain: chain,
+        title: formValues.title,
+        description: formValues.description,
+        file: formValues.file,
+        quantity: formValues.quantity,
+
+        chain: formValues.chain,
         ipfs: "",
         filename: "",
       });
+      toggleMint();
     } else {
       setOpenModal(true);
     }
   };
 
   useEffect(() => {
-    if (file) {
+    if (formValues.file) {
       setCollapseHandler(false);
       setTimeout(async () => setCollapseHandler(true), 200);
     } else {
       setCollapseHandler(false);
     }
-  }, [file]);
+  }, [formValues.file]);
+
+  useEffect(() => {
+    if (clear === true) {
+      setFormValues(initialState);
+      toggleClear();
+    }
+  }, [clear]);
 
   return (
     <>
-      <Stack spacing={4}>
-        <FileInput setFile={setFile} />
+      <Stack spacing={2}>
+        <FileInput setFormValues={setFormValues} />
 
         <Collapse in={collapseHandler}>
-          <Box p={2}>
-            {file && (
+          <Box m={2} mt={0}>
+            {formValues.file && (
               <Stack spacing={4}>
-                <ImgPreview file={file} />
-
+                <ImgPreview file={formValues.file} />
+                e.target.value
                 <Input
-                  onChange={(e) => setTitle(e.target.value)}
-                  bg={"primary.900"}
-                  color={"#999"}
+                  onChange={(e) => {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      title: e.target.value,
+                    }));
+                  }}
+                  bg={"transparentcolor"}
+                  borderColor={"#333"}
                   placeholder="Choose your title"
                 />
-
                 <Textarea
-                  bg={"primary.900"}
-                  color={"#999"}
-                  onChange={(e) => setDescription(e.target.value)}
+                  bg={"transparentcolor"}
+                  onChange={(e) => {
+                    setFormValues((prev) => ({
+                      ...prev,
+                      description: e.target.value,
+                    }));
+                  }}
                   placeholder="Description..."
+                  borderColor={"#333"}
                 />
                 <Stack direction={"row"} spacing={4}>
-                  <Box
-                    bg={"primary.900"}
-                    color={"#999"}
-                    borderRadius={"lg"}
-                    overflow="hidden"
-                  >
+                  <Box bg={"transparentcolor"} borderRadius={"lg"}>
                     <NumberInput
                       size="md"
                       minW={20}
                       maxW={40}
                       defaultValue={1}
                       min={1}
-                      onChange={(e) => setQuantity(e)}
+                      onChange={(e) => {
+                        setFormValues((prev) => ({
+                          ...prev,
+                          quantity: e,
+                        }));
+                      }}
+                      borderColor={"#333"}
                     >
                       <NumberInputField />
                       <NumberInputStepper borderColor={"#333"}>
-                        <NumberIncrementStepper borderColor={"#333"} />
-                        <NumberDecrementStepper borderColor={"#333"} />
+                        <NumberIncrementStepper />
+                        <NumberDecrementStepper />
                       </NumberInputStepper>
                     </NumberInput>
                   </Box>
 
                   <SelectChain
-                    setChain={setChain}
-                    chain={chain}
+                    setFormValues={setFormValues}
+                    chain={formValues.chain}
                     openModal={openModal}
                   />
                 </Stack>
-
-                {chain && (
+                {formValues.chain && (
                   <>
-                    <Stack direction={"row"} color="#999">
-                      <Heading>Costs:</Heading>
+                    <Stack direction={"row"} color="#fff">
+                      <Text fontSize="lg">Price:</Text>
                       <Spacer />
-                      <Heading>{chains[chain].price * quantity}</Heading>
+                      <Box align="right">
+                        <Text fontSize="lg">
+                          {chains[formValues.chain].price * formValues.quantity}{" "}
+                          {formValues.chain}*{" "}
+                        </Text>
+                        <Text fontSize="sm">
+                          *not including transaction fees
+                        </Text>
+                      </Box>
                     </Stack>
+                    <Divider />
                   </>
                 )}
-
-                <Text fontSize="xs" color="#999">
-                  Once your NFT is minted on the Polygon blockchain, you will
-                  not be able to edit or update any of its information.
+                <Text fontSize="xs">
+                  Once your NFT is minted on the blockchain, you will not be
+                  able to edit or update any of its information.
                   <br /> <br />
                   You agree that any information uploaded to the NFT Minter will
                   not contain material subject to copyright or other proprietary

@@ -11,37 +11,39 @@ import "./Base64.sol";
 contract NFTMINTER is ERC721Enumerable, Ownable {
     using Strings for uint256;
 
+    //Events
+    event Minted(address indexed _from, uint256 _value);
+
+    //Structs
     struct NFT {
         string title;
         string description;
         string img;
     }
 
+    //Vars
     mapping(uint256 => NFT) public nfts;
 
+    //constructor
     constructor() ERC721("NFT MINTER", "NFTMNT") {}
-
-    event Minted(address indexed _from, uint256 _value);
 
     // public
     function mint(
         string memory _title,
         string memory _description,
-        string memory _img
+        string memory _img,
+        uint256 _mintAmount
     ) public payable {
         uint256 supply = totalSupply();
-        require(supply + 1 <= 1000);
-
+        require(_mintAmount > 0);
+        require(msg.value >= (0.069 ether * _mintAmount));
         NFT memory newNFT = NFT(_title, _description, _img);
 
-        if (msg.sender != owner()) {
-            // require(msg.value >= 0.005 ether);
+        for (uint256 i = 1; i <= _mintAmount; i++) {
+            nfts[supply + i] = newNFT;
+            _safeMint(msg.sender, supply + i);
+            emit Minted(msg.sender, supply + i);
         }
-
-        nfts[supply + 1] = newNFT;
-        _safeMint(msg.sender, supply + 1);
-
-        emit Minted(msg.sender, supply + 1);
     }
 
     function buildMetadata(uint256 _tokenId)
@@ -61,7 +63,7 @@ contract NFTMINTER is ERC721Enumerable, Ownable {
                                 currentNFT.title,
                                 '", "description":"',
                                 currentNFT.description,
-                                '", "image":"ipfs://"',
+                                '", "image":"ipfs://',
                                 currentNFT.img,
                                 '"}'
                             )

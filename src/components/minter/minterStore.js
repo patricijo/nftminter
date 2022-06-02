@@ -2,7 +2,10 @@ import create from "zustand";
 
 export const useMinterStore = create((set) => ({
   NFTData: null,
-  setNFTData: (data) => set(() => ({ NFTData: data })),
+  setNFTData: (data) => {
+    set((prev) => ({ NFTData: data }));
+    console.log(data);
+  },
 
   minterStates: [],
 

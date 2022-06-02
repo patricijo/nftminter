@@ -8,7 +8,7 @@ const ImgPreview = ({ file }) => {
       <Box
         borderRadius="lg"
         overflow="hidden"
-        bg="secondary"
+        bg="transparentcolor"
         border="1px solid #333"
       >
         <Center>

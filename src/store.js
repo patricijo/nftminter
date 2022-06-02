@@ -8,6 +8,12 @@ export const useStore = create((set) => ({
   currentChain: null,
   setCurrentChain: (newChain) => set(() => ({ currentChain: newChain })),
 
+  mint: false,
+  toggleMint: () => set((prev) => ({ mint: !prev.mint })),
+
+  clear: false,
+  toggleClear: () => set((prev) => ({ clear: !prev.clear })),
+
   gas: 25000,
 
   chains: {
@@ -24,8 +30,8 @@ export const useStore = create((set) => ({
       contract: "",
       method: "wallet_switchEthereumChain",
       marketName: "Opensea.io",
-      marketLink: "Opensea.io",
-      price: 1,
+      marketLink: "https://testnets.opensea.io/assets/ropsen",
+      price: 0.00025,
     },
     tBSC: {
       name: "Binance Smart Chain",
@@ -41,7 +47,7 @@ export const useStore = create((set) => ({
       method: "wallet_addEthereumChain",
       marketName: "Opensea.io",
       marketLink: "Opensea.io",
-      price: 1,
+      price: 0.0017,
     },
     tMATIC: {
       name: "Polygon",
@@ -50,14 +56,15 @@ export const useStore = create((set) => ({
       decimals: 18,
       chainIdHex: "0x13881",
       chainId: 80001,
-      rpcUrls: "https://rpc-mainnet.matic.network/",
+      rpcUrls:
+        "https://speedy-nodes-nyc.moralis.io/b7c7b3c0a96fe1e767ef518e/polygon/mumbai",
       chainName: "Matic Mumbai",
       blockExplorerUrls: "https://explorer-mumbai.maticvigil.com/",
-      contract: "0x419348C2cc4cdAFB4b13e533b89379Ab4e84e6DA",
+      contract: "0x4fDAca1458076a382F0ef1f494Eb0b92c6A763A7",
       method: "wallet_addEthereumChain",
       marketName: "opensea.io",
       marketLink: "https://testnets.opensea.io/assets/mumbai/",
-      price: 25000,
+      price: 0.069,
     },
     CRO: {
       name: "Cronos",
@@ -73,7 +80,7 @@ export const useStore = create((set) => ({
       method: "wallet_addEthereumChain",
       marketName: "Opensea.io",
       marketLink: "Opensea.io",
-      price: 1,
+      price: 0.25,
     },
   },
 }));

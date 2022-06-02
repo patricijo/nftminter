@@ -14,12 +14,19 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import React, { memo } from "react";
 import { useMinterStore } from "./minterStore";
+
 const StatusIcon = ({ index }) => {
   const status = useMinterStore((state) => state.minterStates[index].state);
 
   if (status === "loading") {
     return (
-      <CircularProgress isIndeterminate color="purple.300" size="25px" mr={2} />
+      <CircularProgress
+        isIndeterminate
+        color="purple.300"
+        bg="none"
+        size="25px"
+        mr={2}
+      />
     );
   }
 
@@ -104,7 +111,7 @@ const ErrorCard = memo(
             </Stack>
           </Alert>
 
-          <Stack direction={"row"} pt={2}>
+          <Stack direction={"row"} pt={4}>
             <Button onClick={cancelMint}>Cancel</Button>
             <Spacer />
             <Button onClick={resetMint}>Try again</Button>

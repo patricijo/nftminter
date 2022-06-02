@@ -6,18 +6,19 @@ import { Web3Storage } from "web3.storage";
 import NFTMINTER from "../../artifacts/contracts/NFT_Minter.sol/NFTMINTER.json";
 
 import MinterDisplay from "./minterDisplay";
-import { Collapse, Stack } from "@chakra-ui/react";
+import { Box, Collapse, Stack } from "@chakra-ui/react";
 import { useMinterStore } from "./minterStore";
 import { useStore } from "../../store";
 
 import MintedDisplay from "./mintedDisplay";
 
-const Minter = ({ NFTData }) => {
+const Minter = () => {
   const [ready, setReady] = useState(false);
 
-  const { chains } = useStore();
+  const { chains, toggleClear, mint, toggleMint } = useStore();
 
   const {
+    NFTData,
     setNFTData,
     addMinterState,
     changeMinterStateStatus,
@@ -74,6 +75,7 @@ const Minter = ({ NFTData }) => {
 
   const cancelMint = () => {
     setReady(false);
+
     resetMinterState();
     setNFTData(null);
   };
@@ -86,6 +88,7 @@ const Minter = ({ NFTData }) => {
   ////////////////////////////////////////////////
   const startMint = async () => {
     try {
+      let newNFTData = "";
       addMinterState({
         id: "cyw",
         text: "Connecting your Wallet...",
@@ -111,11 +114,7 @@ const Minter = ({ NFTData }) => {
         throw new Error("We could not connect to the Network.");
       }
       changeLastMinterStateStatus("checked");
-      /*      if (network.chainId !== 80001) {
-        
-        if (network.chainId !== 80001) {
-        }
-      } */
+
       changeMinterStateStatus("cyw", "checked");
 
       addMinterState({
@@ -130,10 +129,9 @@ const Minter = ({ NFTData }) => {
         ipfs: img_ipfs_address,
         filename: encodeURI(NFTData.file.name),
       }); */
-      const newNFTData = NFTData;
+      newNFTData = NFTData;
       newNFTData.ipfs = img_ipfs_address;
       newNFTData.filename = encodeURI(NFTData.file.name);
-      setNFTData(newNFTData);
 
       img_ipfs_address = img_ipfs_address + "/" + encodeURI(NFTData.file.name);
       changeMinterStateStatus("uyi", "checked");
@@ -152,22 +150,24 @@ const Minter = ({ NFTData }) => {
         signer
       );
 
+      let price = NFTData.quantity * chains[NFTData.chain].price;
       const transaction = await contract.mint(
         NFTData.title,
         NFTData.description,
-        img_ipfs_address
+        img_ipfs_address,
+        NFTData.quantity,
+        {
+          value: ethers.utils.parseEther(price.toString()),
+        }
       );
       contract.on("Minted", (from, tokenId) => {
-        const newNFTData = NFTData;
-        newNFTData.tokenId = tokenId.toNumber();
-
-        setNFTData(newNFTData);
+        //BUG: After cancel to old token will be returned
+        console.log("contract event", from, tokenId);
         if (from.toLowerCase() === acc[0]) {
-          console.log(
-            `Token minted from ${from.toLowerCase()} as ${tokenId.toNumber()}`
-          );
+          newNFTData.tokenId = tokenId.toNumber();
         }
       });
+      setNFTData(newNFTData);
       changeMinterStateStatus("pstt", "checked");
 
       addMinterState({
@@ -184,34 +184,68 @@ const Minter = ({ NFTData }) => {
       console.log(error);
       changeLastMinterStateStatus("err");
 
-      addMinterState({
-        id: error.code,
-        text: error.message,
-        state: "error",
-      });
+      if (error.code === "-32603") {
+        addMinterState({
+          id: "-32000",
+          text: "insufficient funds",
+          state: "error",
+        });
+      } else {
+        addMinterState({
+          id: error.code,
+          text: error.message,
+          state: "error",
+        });
+      }
     }
+
+    toggleClear();
   };
 
   useEffect(() => {
-    if (NFTData) {
+    if (mint === true) {
       startMint();
+      toggleMint();
+    }
+  }, [mint]);
+
+  useEffect(() => {
+    if (NFTData && NFTData.chain) {
+      const contract = new ethers.Contract(
+        chains[NFTData.chain].contract,
+        NFTMINTER.abi
+      );
+
+      requestAccount().then((acc) => {
+        let newNFTData;
+        contract.on("Minted", (from, tokenId) => {
+          //BUG: After cancel to old token will be returned
+          console.log("contract event", from, tokenId);
+          if (from.toLowerCase() === acc[0]) {
+            newNFTData.tokenId = tokenId.toNumber();
+            setNFTData(newNFTData);
+            console.log("token ID", tokenId);
+          }
+        });
+      });
     }
   }, [NFTData]);
 
   return (
     <>
-      <Stack spacing={2}>
-        <Collapse in={ready === false}>
-          <MinterDisplay cancelMint={cancelMint} resetMint={resetMint} />
-        </Collapse>
-        <Collapse in={ready === true}>
-          <MintedDisplay
-            NFTData={NFTData}
-            chains={chains}
-            cancelMint={cancelMint}
-          />
-        </Collapse>
-      </Stack>
+      <Box p={2}>
+        <Stack spacing={2}>
+          <Collapse in={ready === false}>
+            <Stack spacing={4}>
+              <MinterDisplay cancelMint={cancelMint} resetMint={resetMint} />
+            </Stack>
+          </Collapse>
+          <Collapse in={ready === true}>
+            {" "}
+            <MintedDisplay chains={chains} cancelMint={cancelMint} />
+          </Collapse>
+        </Stack>
+      </Box>
     </>
   );
 };

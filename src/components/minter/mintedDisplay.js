@@ -8,12 +8,12 @@ import {
   Spacer,
   Stack,
 } from "@chakra-ui/react";
-import React, { useEffect } from "react";
+import React from "react";
+import { useMinterStore } from "./minterStore";
 
-const MintedDisplay = ({ NFTData, chains, cancelMint }) => {
-  useEffect(() => {}, []);
-
-  if (NFTData) {
+const MintedDisplay = ({ chains, cancelMint }) => {
+  const { NFTData } = useMinterStore();
+  if (NFTData !== null) {
     return (
       <>
         <Stack spacing={4}>
